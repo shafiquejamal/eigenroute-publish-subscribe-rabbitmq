@@ -31,12 +31,11 @@ trait RabbitMQPublisherSubscriber extends PublisherSubscriber {
   factory.setPassword(conf.getString("op-rabbit.connection.password"))
   factory.setVirtualHost(conf.getString("op-rabbit.connection.virtual-host"))
   val useSSL = conf.getBoolean("op-rabbit.connection.ssl")
-  val connectionTimeout = conf.getDouble("op-rabbit.connection-timeout")
   if (useSSL) factory.useSslProtocol()
 
   import concurrent.duration._
   val connectionActor: ActorRef =
-    actorSystem.actorOf(ConnectionActor.props(factory, connectionTimeout.seconds), "subscriber-connection")
+    actorSystem.actorOf(ConnectionActor.props(factory, 3.seconds), "subscriber-connection")
 
   def setupSubscriber(channel: Channel, self: ActorRef) {
     val queue = channel.queueDeclare(queueName, true, false, false, new java.util.HashMap()).getQueue
