@@ -11,8 +11,10 @@ import play.api.libs.json._
 
 trait RabbitMQPublisherSubscriber extends PublisherSubscriber {
 
+  val conf = ConfigFactory.load()
+
   val actorSystem: ActorSystem
-  val exchange: String
+  val exchange: String =  conf.getString("eigenroute-publish-subscribe.exchange")
   def props: Props
   val nrOfInstances = 10000
   val convert: (String) => Option[MessageBrokerMessageType]
@@ -23,7 +25,6 @@ trait RabbitMQPublisherSubscriber extends PublisherSubscriber {
     rabbitControl ! Message.exchange(message, exchange, routingKey)
   }
 
-  val conf = ConfigFactory.load()
   val queueName: String = conf.getString("eigenroute-publish-subscribe.queueName")
 
   val factory = new ConnectionFactory()
