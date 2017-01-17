@@ -13,8 +13,8 @@ trait RabbitMQPublisherSubscriber extends PublisherSubscriber {
 
   val actorSystem: ActorSystem
   val exchange: String
-  val props: Props
-  val nrOfInstances = 100
+  def props: Props
+  val nrOfInstances = 10000
   val convert: (String) => Option[MessageBrokerMessageType]
 
   val rabbitControl = actorSystem.actorOf(Props[RabbitControl])
@@ -39,10 +39,9 @@ trait RabbitMQPublisherSubscriber extends PublisherSubscriber {
   val connectionActor: ActorRef =
     actorSystem.actorOf(ConnectionActor.props(factory, 3.seconds), "subscriber-connection")
 
-  val incomingMessageHandler = actorSystem.actorOf(props.withRouter(SmallestMailboxPool(nrOfInstances = nrOfInstances)))
-
   def setupSubscriber(channel: Channel, self: ActorRef) {
     val queue = channel.queueDeclare(queueName, true, false, false, new java.util.HashMap()).getQueue
+    val incomingMessageHandler = actorSystem.actorOf(props.withRouter(SmallestMailboxPool(nrOfInstances = nrOfInstances)))
     val consumer = new DefaultConsumer(channel) {
       override def handleDelivery(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: Array[Byte]) {
         val incomingMessageJson = Json.parse(new String(body))
